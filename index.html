@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>Philippines Live Stream Hub - A-Z Enhanced</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #000;
+      color: #fff;
+      font-family: Arial, sans-serif;
+    }
+    .container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .header {
+      background: linear-gradient(135deg, #1a1a1a, #333);
+      padding: 15px;
+      border-bottom: 1px solid #333;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .title {
+      font-size: 18px;
+      font-weight: bold;
+      color: #fff;
+    }
+    .controls {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .channel-selector {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .channel-btn {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 8px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.3s ease;
+    }
+    .channel-btn:hover {
+      background: #555;
+    }
+    .channel-btn.active {
+      background: #ff0000;
+      border-color: #ff0000;
+    }
+    .sort-controls {
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .sort-btn {
+      background: #444;
+      color: #fff;
+      border: 1px solid #666;
+      padding: 5px 10px;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 11px;
+    }
+    .sort-btn:hover {
+      background: #666;
+    }
+    .sort-btn.active {
+      background: #ff0000;
+      border-color: #ff0000;
+    }
+    .search-box {
+      background: #333;
+      color: #fff;
+      border: 1px solid #555;
+      padding: 5px 10px;
+      border-radius: 3px;
+      font-size: 12px;
+      width: 150px;
+    }
+    .video-container {
+      flex: 1;
+      position: relative;
+      min-height: 0;
+    }
+    .video-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+    .status-badge {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: linear-gradient(135deg, #ff0000, #cc0000);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-weight: 600;
+      font-size: 14px;
+      z-index: 1000;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.5; }
+      100% { opacity: 1; }
+    }
+    .channel-info {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(0,0,0,0.8);
+      padding: 10px 15px;
+      border-radius: 4px;
+      max-width: 300px;
+    }
+    .channel-name {
+      font-weight: bold;
+      color: #ff0000;
+      margin-bottom: 5px;
+    }
+    .channel-description {
+      font-size: 12px;
+      color: #ccc;
+    }
+    .error-message {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: rgba(255,0,0,0.9);
+      color: white;
+      padding: 20px;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
+    }
+    .channel-counter {
+      font-size: 11px;
+      color: #ccc;
+      margin-left: 10px;
+    }
+    @media (max-width: 768px) {
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .controls {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .channel-selector {
+        margin-top: 10px;
+        justify-content: center;
+        max-height: 150px;
+      }
+      .channel-btn {
+        font-size: 11px;
+        padding: 6px 10px;
+      }
+      .search-box {
+        width: 100%;
+        margin-top: 5px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">
+        Philippines Live Stream Hub - A-Z Enhanced
+        <span class="channel-counter" id="channelCounter">(0 channels)</span>
+      </div>
+      <div class="controls">
+        <div class="sort-controls">
+          <button class="sort-btn active" onclick="sortChannels('default')">Default</button>
+          <button class="sort-btn" onclick="sortChannels('az')">A-Z</button>
+          <button class="sort-btn" onclick="sortChannels('za')">Z-A</button>
+        </div>
+        <input type="text" class="search-box" id="searchBox" placeholder="Search channels..." onkeyup="filterChannels()">
+        <div class="channel-selector" id="channelSelector">
+          <!-- Channel buttons will be dynamically generated -->
+        </div>
+      </div>
+    </div>
+    <div class="video-container">
+      <div class="status-badge">
+        <div class="status-dot"></div>
+        LIVE
+      </div>
+      <iframe id="videoFrame" src="" title="YouTube Live Channel" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+      <div class="channel-info">
+        <div class="channel-name" id="channelName">Loading...</div>
+        <div class="channel-description" id="channelDescription">Please select a channel to start streaming</div>
+      </div>
+      <div class="error-message" id="errorMessage">
+        <h3>Channel Not Available</h3>
+        <p>This channel may not be currently streaming or the ID is invalid.</p>
+        <p>Please try another channel.</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const channels = [
+      {
+        id: 'UCnf8Ejd3y2RboWNcOqHS24A',
+        name: 'ATTY. RUPHIL F BAÑOC',
+        description: 'Legal commentary and public service broadcasting'
+      },
+      {
+        id: 'UCPTddoHsUattFCXD8u4p7Eg',
+        name: 'ATTY. JURIL BROKA PATIÑO',
+        description: 'Legal analysis and current affairs discussions'
+      },
+      {
+        id: 'UC1S4Kg8_N5-1Rp6miCKEpsQ',
+        name: 'XFM Cebu 88.3',
+        description: 'Cebu\'s premier radio station - music, news, and entertainment'
+      },
+      {
+        id: 'UCstEtN0pgOmCf02EdXsGChw',
+        name: 'KAPAMILYA CHANNEL',
+        description: 'ABS-CBN Entertainment - Philippines leading entertainment network'
+      },
+      {
+        id: 'UCKL5hAuzgFQsyrsQKgU0Qng',
+        name: 'GMA NETWORK',
+        description: 'Philippines largest broadcast network - news and entertainment'
+      },
+      {
+        id: 'UCiFx0kZFjR29u0uJxTSq5MQ',
+        name: 'TV5 Philippines',
+        description: 'News5 - Philippines news, sports, and entertainment channel'
+      },
+      {
+        id: 'UCJCUbMaY593_4SN1QPG7NFQ',
+        name: 'PTV Philippines',
+        description: 'People\'s Television Network - Government broadcasting service'
+      },
+      {
+        id: 'UCIxIecbM8okv6hI7iqGJm2A',
+        name: 'RMN NETWORK',
+        description: 'Radio Mindanao Network - nationwide news and radio broadcasting'
+      },
+      {
+        id: 'UCpOm2kv1upnIFoOT7rSp6hg',
+        name: 'PCSO GOV',
+        description: 'Philippine Charity Sweepstakes Office - official government lottery'
+      },
+      {
+        id: 'UCupvZG-5ko_eiXAupbDfxWw',
+        name: 'CNN Philippines',
+        description: 'Cable News Network Philippines - 24/7 news coverage'
+      },
+      {
+        id: 'UCDgW7mEUuVJuU-yRyZslrbw',
+        name: 'ALL TV2',
+        description: 'All TV Philippines - comprehensive news and entertainment'
+      },
+      {
+        id: 'UC7941bBpZFenu_58hHnBkGQ',
+        name: 'CCTN 47 OFFICIAL',
+        description: 'Cebu Catholic Television Network - religious programming'
+      },
+      {
+        id: 'UCeY0bbntWzzVIaj2zQigXg',
+        name: 'NBC News',
+        description: 'National Broadcasting Corporation - Philippine news coverage'
+      },
+      {
+        id: 'UCYFgnkDYr-G5L_iy6DZdvSA',
+        name: 'Super Radyo DZBB',
+        description: 'GMA Super Radyo - leading AM radio news and public affairs'
+      },
+      {
+        id: 'UCs_VNu-FQ0WcJnD4QkmIL5w',
+        name: 'DZMM Teleradyo',
+        description: 'ABS-CBN DZMM - premier radio news and current affairs'
+      },
+      {
+        id: 'UCnYlMfpbCIg54cEyUiE42vw',
+        name: 'NET25 News and Information',
+        description: 'Iglesia ni Cristo news network - religious and current affairs'
+      },
+      {
+        id: 'UCi-D5IxBR2HahDyfJfqy7jA',
+        name: 'One PH',
+        description: 'Cignal TV news channel - public affairs and current events'
+      },
+      {
+        id: 'UCkw9o4FxDfJJiEHpq5JzDrQ',
+        name: 'DYTR Bohol TV',
+        description: 'Bohol regional television - local news and programming'
+      },
+      {
+        id: 'UCVVw9u0pZ3nnWxx7WyE8YkQ',
+        name: 'Bombo Radyo Philippines',
+        description: 'Bombo Radyo - nationwide news and public affairs radio'
+      },
+      {
+        id: 'UCetMicrNjXa_Pev2pjl-Vjw',
+        name: 'Leo Lastimosa',
+        description: 'Cebuano journalist - news commentary and analysis'
+      },
+      {
+        id: 'UCbxiLsJzOnnpDOZSwB5HWUQ',
+        name: 'MPBL',
+        description: 'Maharlika Pilipinas Basketball League - Philippine basketball'
+      }
+    ];
+
+    let currentChannelIndex = 0;
+    let currentSortOrder = 'default';
+    let filteredChannels = [...channels];
+
+    function initializeChannels() {
+      updateChannelCounter();
+      renderChannelButtons();
+      switchChannel(0);
+    }
+
+    function updateChannelCounter() {
+      document.getElementById('channelCounter').textContent = `(${filteredChannels.length} channels)`;
+    }
+
+    function renderChannelButtons() {
+      const selector = document.getElementById('channelSelector');
+      selector.innerHTML = '';
+      
+      filteredChannels.forEach((channel, index) => {
+        const button = document.createElement('button');
+        button.className = 'channel-btn';
+        button.textContent = channel.name;
+        button.onclick = () => switchChannel(index);
+        button.title = channel.description;
+        selector.appendChild(button);
+      });
+    }
+
+    function sortChannels(order) {
+      currentSortOrder = order;
+      
+      // Update active button
+      document.querySelectorAll('.sort-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+      
+      // Sort channels
+      switch(order) {
+        case 'az':
+          filteredChannels.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'za':
+          filteredChannels.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+        default:
+          filteredChannels = [...channels];
+          break;
+      }
+      
+      // Re-filter if search is active
+      const searchTerm = document.getElementById('searchBox').value;
+      if (searchTerm) {
+        filterChannels();
+      } else {
+        renderChannelButtons();
+        updateChannelCounter();
+        switchChannel(0);
+      }
+    }
+
+    function filterChannels() {
+      const searchTerm = document.getElementById('searchBox').value.toLowerCase();
+      
+      if (searchTerm === '') {
+        // Reset to current sort order
+        sortChannels(currentSortOrder);
+        return;
+      }
+      
+      filteredChannels = channels.filter(channel => 
+        channel.name.toLowerCase().includes(searchTerm) || 
+        channel.description.toLowerCase().includes(searchTerm)
+      );
+      
+      // Apply current sort order to filtered results
+      switch(currentSortOrder) {
+        case 'az':
+          filteredChannels.sort((a, b) => a.name.localeCompare(b.name));
+          break;
+        case 'za':
+          filteredChannels.sort((a, b) => b.name.localeCompare(a.name));
+          break;
+      }
+      
+      renderChannelButtons();
+      updateChannelCounter();
+      
+      if (filteredChannels.length > 0) {
+        switchChannel(0);
+      }
+    }
+
+    function switchChannel(index) {
+      if (index < 0 || index >= filteredChannels.length) return;
+      
+      currentChannelIndex = index;
+      const channel = filteredChannels[index];
+      
+      // Hide error message
+      document.getElementById('errorMessage').style.display = 'none';
+      
+      // Update iframe with live stream URL format
+      const iframe = document.getElementById('videoFrame');
+      iframe.src = `https://www.youtube.com/embed/live_stream?channel=${channel.id}&autoplay=1&mute=1`;
+      
+      // Update channel info
+      document.getElementById('channelName').textContent = channel.name;
+      document.getElementById('channelDescription').textContent = channel.description;
+      
+      // Update active button
+      document.querySelectorAll('.channel-btn').forEach((btn, i) => {
+        btn.classList.toggle('active', i === index);
+      });
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', initializeChannels);
+  </script>
+</body>
+</html>
